@@ -74,7 +74,7 @@ export const getAllUsers = async (req, res) => {
         res.status(200).json({ message: "ALL USERS", data: allUsers })
     } catch (error) {
         console.log(error);
-        res.status(400).json({ message: 'ERROR IN GETTING ALL USERS', data: null })
+        res.status(400).json({ message: 'ERROR IN GETTING ALL USERS', Error: error, data: null })
     }
 
 
