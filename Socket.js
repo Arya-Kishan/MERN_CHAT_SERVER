@@ -13,9 +13,14 @@ const io = new Server(server, {
 });
 
 let userSocketMap = {};
+let groupSocketMap = {};
 
-export const getSocketIdByUserId = (userId) =>{
+export const getSocketIdByUserId = (userId) => {
     return userSocketMap[userId];
+}
+
+export const getSocketIdByGroupId = (groupName) => {
+    return groupSocketMap[groupName];
 }
 
 io.on("connection", (socket) => {
@@ -27,10 +32,19 @@ io.on("connection", (socket) => {
         userSocketMap[userId] = socket.id;
     }
 
-    console.log(userSocketMap);
+    io.emit("onlineUsers", Object.keys(userSocketMap))
+
+
+    socket.on("group-selection", ({ groupId, groupName }) => {
+        console.log("ROOM CREATED WITH ID : " + groupId);
+        socket.join(groupId)
+        groupSocketMap[groupName] = groupId;
+    })
 
     socket.on("disconnect", () => {
         console.log("USER DISCONNECTED : ", socket.id);
+        delete userSocketMap[userId];
+        io.emit("onlineUsers", Object.keys(userSocketMap))
     })
 
 

@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import connectDB from "./config/database.js";
 import userRouter from "./routes/userRoutes.js"
 import messageRouter from "./routes/messageRoutes.js"
+import groupRouter from "./routes/groupRoute.js"
 import { app, server } from "./Socket.js"
 
 dotenv.config({});
@@ -23,6 +24,7 @@ app.use(cors({
 
 app.use("/api/v1/user", userRouter)
 app.use("/api/v1/message", messageRouter)
+app.use("/api/v1/group", groupRouter)
 
 app.get("/", (req, res) => {
     res.send("arya")

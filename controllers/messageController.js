@@ -1,6 +1,8 @@
 import { Conversation } from "../models/conversationModel.js";
+import { GroupMessage } from "../models/groupMessageModel.js";
+import { Group } from "../models/groupModel.js";
 import { Message } from "../models/messageModel.js";
-import {getSocketIdByUserId, io} from "../Socket.js"
+import { getSocketIdByUserId, io } from "../Socket.js"
 
 export const createMessage = async (req, res) => {
 
@@ -23,10 +25,10 @@ export const createMessage = async (req, res) => {
 
         // SOCKET IO
         const receiverSocketId = getSocketIdByUserId(receiverId);
-        if(receiverSocketId){
+        if (receiverSocketId) {
             io.to(receiverSocketId).emit("newMessage", newMessage);
         }
-        
+
 
         return res.status(200).json({ message: "NEW CONVERSATION OR MESSAGE ADDED CREATED", data: newMessage })
 
@@ -42,16 +44,16 @@ export const getConversations = async (req, res) => {
 
     try {
 
-    let { senderId, receiverId } = req.body;
+        let { senderId, receiverId } = req.body;
 
-    let getConversation = await Conversation.findOne({ participants: { $all: [senderId, receiverId] } }).populate("messages")
+        let getConversation = await Conversation.findOne({ participants: { $all: [senderId, receiverId] } }).populate("messages")
 
-    res.status(200).json({ message: "GETTING CONVERSATION", data: getConversation })
+        res.status(200).json({ message: "GETTING CONVERSATION", data: getConversation })
 
     } catch (error) {
         console.log(error);
         res.status(400).json({ message: 'ERROR IN CREATING NEW CONVERSATION OR MESSAGE', data: null })
-        
+
     }
 
 

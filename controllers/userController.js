@@ -39,8 +39,8 @@ export const loginUser = async (req, res) => {
 
         let { userName, password } = req.body;
 
-
-        let user = await User.findOne({ userName })
+        let user = await User.findOneAndUpdate({ userName }, { $set: { active: Date.now() } })
+        console.log(user);
 
 
         if (!user) {
@@ -75,6 +75,21 @@ export const getAllUsers = async (req, res) => {
     } catch (error) {
         console.log(error);
         res.status(400).json({ message: 'ERROR IN GETTING ALL USERS', Error: error, data: null })
+    }
+
+
+}
+
+
+export const searchUsers = async (req, res) => {
+
+    try {
+        const docs = await User.find({ "userName": { $regex: '^' + req.query.search, $options: 'i' } });
+        res.status(200).json(docs);
+
+    } catch (error) {
+        console.log(error);
+        res.status(400).json({ message: 'ERROR IN SEARCHING USERS', Error: error, data: null })
     }
 
 
