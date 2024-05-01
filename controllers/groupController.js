@@ -38,6 +38,7 @@ export const sendGroupMessage = async (req, res) => {
 
         let newGroupMessage = new GroupMessage(req.body);
         let doc = await newGroupMessage.save();
+        doc = await doc.populate("senderId", ["userName", "_id"])
 
         findGroup.groupMessages.push(doc._id)
 
@@ -68,7 +69,14 @@ export const getGroupMessages = async (req, res) => {
         console.log(req.body);
         const { groupId } = req.body;
 
-        let doc = await Group.findById(groupId).populate("groupMessages");
+        let doc = await Group.findById(groupId).populate({
+            path: "groupMessages",
+            select: ["senderId", "message", "createdAt"],
+            populate: {
+                path: 'senderId',
+                select: ["userName"],
+            },
+        }).populate("groupMembers", "userName");
         return res.status(200).json({ message: 'GET GROUP MESSAGE', data: doc })
 
     } catch (error) {
@@ -106,7 +114,7 @@ export const getUserGroups = async (req, res) => {
 
         const { userId } = req.query;
 
-        let doc = await Group.find({ $or: [{ groupCreatedBy: userId }, { groupMembers: { $in: [userId] } }] }).populate("groupMessages");
+        let doc = await Group.find({ $or: [{ groupCreatedBy: userId }, { groupMembers: { $in: [userId] } }] }).populate("groupMessages").populate("groupMembers", ["userName", "profilePic"]);
         return res.status(200).json({ message: 'GET USER GROUPS', data: doc })
 
     } catch (error) {

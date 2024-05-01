@@ -18,7 +18,11 @@ export const registerUser = async (req, res) => {
         let hashedPassword = await bcrypt.hash(password, 10)
 
         let user = new User({ ...req.body, password: hashedPassword, profilePic });
-        const newUser = await user.save();
+        let newUser = await user.save();
+        newUser = await newUser.populate({
+            path: 'friends',
+            select: "-password"
+        })
 
         let token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, { expiresIn: '1d' })
 
@@ -39,7 +43,10 @@ export const loginUser = async (req, res) => {
 
         let { userName, password } = req.body;
 
-        let user = await User.findOneAndUpdate({ userName }, { $set: { active: Date.now() } })
+        let user = await User.findOneAndUpdate({ userName }, { $set: { active: Date.now() } }).populate({
+            path: 'friends',
+            select: "-password"
+        })
         console.log(user);
 
 
@@ -94,3 +101,65 @@ export const searchUsers = async (req, res) => {
 
 
 }
+
+export const addFriend = async (req, res) => {
+
+    try {
+
+        console.log(req.body);
+
+        const { senderRequestUserId, receiverRequestUserId } = req.body;
+
+        let newFriends = await User.findByIdAndUpdate(receiverRequestUserId, { $push: { friends: senderRequestUserId } });
+        let newFriends2 = await User.findByIdAndUpdate(senderRequestUserId, { $push: { friends: receiverRequestUserId } });
+
+        res.status(200).json({ message: "FRIEND ADDED", data: newFriends })
+
+    } catch (error) {
+        console.log(error);
+        res.status(400).json({ message: 'ERROR IN ADDING FRIEND', Error: error, data: null })
+    }
+
+
+}
+
+
+// export const registerUser = async (req, res) => {
+
+//     try {
+
+//         console.log(req.body);
+
+//         req.body.forEach(async (e) => {
+
+//             let { userName, password, gender } = e;
+//             let profilePic;
+//             console.log(e);
+
+
+//             if (gender == "male") {
+//                 profilePic = `https://avatar.iran.liara.run/public/boy?userName=${userName}`
+//             } else {
+//                 profilePic = `https://avatar.iran.liara.run/public/girl?userName=${userName}`
+//             }
+
+//             let hashedPassword = await bcrypt.hash(password, 10)
+
+//             let user = new User({ userName, password: hashedPassword, profilePic, gender });
+//             const newUser = await user.save();
+
+
+//         })
+
+//         res.send("apple")
+
+
+
+
+//     } catch (error) {
+//         console.log(error);
+//         res.status(400).json({ message: 'ERROR IN CREATING USER', data: null })
+//     }
+
+
+// }
