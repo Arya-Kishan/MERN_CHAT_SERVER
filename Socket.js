@@ -25,9 +25,7 @@ export const getSocketIdByGroupId = (groupName) => {
 
 io.on("connection", (socket) => {
 
-    console.log("USER CONNECTED : ", socket.id)
     const userId = socket.handshake.query.userId
-    console.log(userId);
     if (userId !== undefined) {
         userSocketMap[userId] = socket.id;
     }
@@ -36,13 +34,28 @@ io.on("connection", (socket) => {
 
 
     socket.on("group-selection", ({ groupId, groupName }) => {
-        console.log("ROOM CREATED WITH ID : " + groupId);
         socket.join(groupId)
         groupSocketMap[groupName] = groupId;
     })
 
+    socket.on("leave-group", ({ userId, groupId }) => {
+
+        socket.leave(groupId);
+        console.log("MAKING USER LEAVE GROUP");
+        
+    })
+
+    // USED FOR SHOWING TYPING LOADER
+    socket.on("User-Typing", ({ type, userId }) => {
+        let userSocketId = getSocketIdByUserId(userId)
+        if (type == "start") {
+            io.to(userSocketId).emit("is-typing", { typing: true, userId })
+        } else {
+            io.to(userSocketId).emit("is-typing", { typing: false, userId })
+        }
+    })
+
     socket.on("disconnect", () => {
-        console.log("USER DISCONNECTED : ", socket.id);
         delete userSocketMap[userId];
         io.emit("onlineUsers", Object.keys(userSocketMap))
     })
