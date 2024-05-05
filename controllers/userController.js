@@ -6,27 +6,34 @@ export const registerUser = async (req, res) => {
 
     try {
 
-        let { userName, password, gender } = req.body;
-        let profilePic;
+        let { userName, password } = req.body;
 
-        if (gender == "male") {
-            profilePic = `https://avatar.iran.liara.run/public/boy?userName=${userName}`
+
+        let findUser = await User.findOne({ userName })
+        console.log(findUser);
+
+        if (findUser) {
+            res.status(202).json({ message: 'NAME IS ALREADY TAKEN', data: null })
         } else {
-            profilePic = `https://avatar.iran.liara.run/public/girl?userName=${userName}`
+
+
+
+            let profilePic = `https://api.multiavatar.com/${userName}.svg`;
+
+            let hashedPassword = await bcrypt.hash(password, 10)
+
+            let user = new User({ ...req.body, password: hashedPassword, profilePic });
+            let newUser = await user.save();
+            newUser = await newUser.populate({
+                path: 'friends',
+                select: "-password"
+            })
+
+            let token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, { expiresIn: '1d' })
+
+            res.status(200).cookie("jwt_token_chat", token, { maxAge: 1 * 24 * 60 * 60 * 1000, httpOnly: true }).json({ message: 'NEW USER CREATED', data: newUser })
+
         }
-
-        let hashedPassword = await bcrypt.hash(password, 10)
-
-        let user = new User({ ...req.body, password: hashedPassword, profilePic });
-        let newUser = await user.save();
-        newUser = await newUser.populate({
-            path: 'friends',
-            select: "-password"
-        })
-
-        let token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, { expiresIn: '1d' })
-
-        res.status(200).cookie("jwt_token_chat", token, { maxAge: 1 * 24 * 60 * 60 * 1000, httpOnly: true }).json({ message: 'NEW USER CREATED', data: newUser })
 
 
     } catch (error) {
@@ -110,10 +117,19 @@ export const addFriend = async (req, res) => {
 
         const { senderRequestUserId, receiverRequestUserId } = req.body;
 
-        let newFriends = await User.findByIdAndUpdate(receiverRequestUserId, { $push: { friends: senderRequestUserId } });
-        let newFriends2 = await User.findByIdAndUpdate(senderRequestUserId, { $push: { friends: receiverRequestUserId } });
+        let user = await User.findById(senderRequestUserId)
 
-        res.status(200).json({ message: "FRIEND ADDED", data: newFriends })
+        if (user.friends.includes(receiverRequestUserId)) {
+
+            res.status(202).json({ message: "ALREADY FRIEND", data: null })
+
+        } else {
+
+            let newFriends = await User.findByIdAndUpdate(receiverRequestUserId, { $push: { friends: senderRequestUserId } });
+            let newFriends2 = await User.findByIdAndUpdate(senderRequestUserId, { $push: { friends: receiverRequestUserId } });
+
+            res.status(200).json({ message: "FRIEND ADDED", data: newFriends })
+        }
 
     } catch (error) {
         console.log(error);
