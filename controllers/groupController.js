@@ -114,7 +114,7 @@ export const getUserGroups = async (req, res) => {
 
         const { userId } = req.query;
 
-        let doc = await Group.find({ $or: [{ groupCreatedBy: userId }, { groupMembers: { $in: [userId] } }] }).populate("groupMessages").populate("groupMembers", ["userName", "profilePic"]);
+        let doc = await Group.find({ $or: [{ groupCreatedBy: userId }, { groupMembers: { $in: [userId] } }] }).populate("groupMessages").populate("groupMembers", ["userName", "profilePic"]).populate('groupCreatedBy');
         return res.status(200).json({ message: 'GET USER GROUPS', data: doc })
 
     } catch (error) {

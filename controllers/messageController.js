@@ -100,3 +100,47 @@ export const unseenMessage = async (req, res) => {
 
 
 }
+
+export const updateMessage = async (req, res) => {
+
+    let { messageId, type, newMessage } = req.body;
+    console.log(req.body);
+
+    let updatedMessage;
+
+    if (type == "solo") {
+
+        updatedMessage = await Message.findByIdAndUpdate(messageId, { message: newMessage }, { new: true })
+
+    } else {
+
+        updatedMessage = await GroupMessage.findByIdAndUpdate(messageId, { message: newMessage }, { new: true })
+    }
+
+    console.log(updatedMessage);
+
+    res.status(200).json({ message: "UPDATED MESSAGE", data: updatedMessage })
+
+}
+
+export const deleteMessage = async (req, res) => {
+
+    let { messageId, type } = req.body;
+    console.log(req.body);
+
+    let updatedMessage;
+
+    if (type == "solo") {
+
+        updatedMessage = await Message.findByIdAndUpdate(messageId, { message: "Deleted..." }, { new: true })
+
+    } else {
+
+        updatedMessage = await GroupMessage.findByIdAndUpdate(messageId, { message: "Deleted..." }, { new: true })
+    }
+
+    console.log(updatedMessage);
+
+    res.status(200).json({ message: "UPDATED MESSAGE", data: updatedMessage })
+
+}

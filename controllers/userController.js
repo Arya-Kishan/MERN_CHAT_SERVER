@@ -6,11 +6,18 @@ export const registerUser = async (req, res) => {
 
     try {
 
-        let { userName, password } = req.body;
+        let { userName, password, gender } = req.body;
 
+        let profilePic;
 
         let findUser = await User.findOne({ userName })
         console.log(findUser);
+
+        if (gender == "male") {
+            profilePic = `https://avatar.iran.liara.run/public/boy?userName=${userName}`
+        } else {
+            profilePic = `https://avatar.iran.liara.run/public/girl?userName=${userName}`
+        }
 
         if (findUser) {
             res.status(202).json({ message: 'NAME IS ALREADY TAKEN', data: null })
