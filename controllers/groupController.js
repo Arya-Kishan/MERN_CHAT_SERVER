@@ -125,3 +125,39 @@ export const getUserGroups = async (req, res) => {
 
 
 }
+
+
+// UPDATE GROUP MEMBERS (ADD OR DELETE)
+export const updateGroup = async (req, res) => {
+
+    console.log(req.body);
+
+    try {
+
+        if (req.body.type == "add") {
+            let group = await Group.findByIdAndUpdate(req.body.groupId, { $push: { groupMembers: JSON.parse(req.body.groupMembersToAdd) } }, { new: true }).populate("groupMessages").populate("groupMembers", ["userName", "profilePic"]).populate('groupCreatedBy');
+            res.status(200).json({ data: group })
+        } else if (req.body.type == "remove") {
+            let group = await Group.findByIdAndUpdate(req.body.groupId, { $pull: { groupMembers: req.body.groupMemberToRemove } }, { new: true }).populate("groupMessages").populate("groupMembers", ["userName", "profilePic"]).populate('groupCreatedBy');
+            res.status(200).json({ data: group })
+        } else {
+            res.status(400).json({ message: "CHECK THE OPERATION", data: null })
+        }
+
+
+    } catch (error) {
+        res.status(400).json({ message: "NOT UPDATED", data: error })
+        console.log(error);
+    }
+}
+
+// DELETE GROUP
+export const deleteGroup = async (req, res) => {
+    try {
+        let group = await Group.findByIdAndDelete(req.body.groupId)
+        res.status(200).json({ data: group })
+    } catch (error) {
+        res.status(400).json({ data: error })
+        console.log(error);
+    }
+}
